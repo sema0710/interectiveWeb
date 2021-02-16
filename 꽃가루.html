@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      .wrapper {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        min-height: 800px;
+      }
+      .thankstext {
+        font-size: 50px;
+        font-weight: 600;
+        color: #f57278;
+        animation-name: textInit;
+        animation-duration: 5s;
+        position: absolute;
+        animation-fill-mode: forwards;
+      }
+
+      .secondtext {
+        font-size: 50px;
+        font-weight: 600;
+        animation-name: secondTextInit;
+        animation-duration: 1s;
+        position: absolute;
+        animation-fill-mode: forwards;
+        animation-delay: 5s;
+        background: linear-gradient(to right, #f57278, #f57278 50%, white 50%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 200% 100%;
+        background-position: 100%;
+        text-decoration: none;
+        opacity: 0;
+      }
+
+      .redirectButton {
+        width: 200px;
+        height: 60px;
+        border-radius: 50px;
+        background-color: #f57278;
+        color: white;
+        border: none;
+        outline: none;
+        font-size: 30px;
+        font-weight: 600;
+        animation-name: buttonInit;
+        animation-delay: 6.5s;
+        animation-duration: 1s;
+        animation-fill-mode: forwards;
+        opacity: 0;
+        box-shadow: 4px 4px 0px 0px rgba(245, 114, 120, 0.5);
+        margin-top: 190px;
+      }
+
+      .redirectButton:active {
+        box-shadow: 0px 0px 0px 0px rgba(245, 114, 120, 0.5);
+        margin-left: 4px;
+        margin-top: 194px;
+      }
+
+      @keyframes textInit {
+        0% {
+          opacity: 0;
+          top: 35%;
+        }
+        20% {
+          opacity: 1;
+          top: 40%;
+        }
+        80% {
+          opacity: 1;
+          top: 40%;
+        }
+        100% {
+          opacity: 1;
+          top: 30%;
+        }
+      }
+
+      @keyframes secondTextInit {
+        0% {
+          opacity: 0;
+          background-position: 100%;
+        }
+        1% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+          background-position: 0% 100%;
+        }
+      }
+
+      @keyframes buttonInit {
+        0% {
+          opacity: 0;
+          transform: translate(0px, 10px);
+        }
+        100% {
+          opacity: 1;
+          transform: translate(0px, 0px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <p class="thankstext">지원해 주셔서 감사합니다.</p>
+      <div class="secondtext">
+        INIT을 이용해서 학교에 대해 자세히 알아보세요.
+      </div>
+      <button class="redirectButton">바로가기</button>
+    </div>
+  </body>
+  <script>
+    class Progress {
+      constructor(param = {}) {
+        this.timestamp = null;
+        this.duration = param.duration || Progress.CONST.DURATION;
+        // 기간
+        this.progress = 0;
+        this.delta = 0;
+        // 현재 시간 - 맨 처음 실행 시간
+        this.progress = 0;
+        // 진행도
+        this.isLoop = !!param.isLoop;
+
+        this.reset();
+      }
+
+      static get CONST() {
+        return {
+          DURATION: 1000,
+        };
+      }
+
+      reset() {
+        this.timestamp = null;
+      }
+
+      start(now) {
+        this.timestamp = now;
+      }
+
+      tick(now) {
+        if (this.timestamp) {
+          this.delta = now - this.timestamp;
+          this.progress = Math.min(this.delta / this.duration, 1);
+
+          if (this.progress >= 1 && this.isLoop) {
+            this.start(now);
+          }
+
+          return this.progress;
+        } else {
+          return 0;
+        }
+      }
+    }
+
+    class Confetti {
+      constructor(param) {
+        this.parent = param.elm || document.body;
+        this.canvas = document.createElement("canvas");
+        this.ctx = this.canvas.getContext("2d");
+        this.width = param.width || this.parent.offsetWidth;
+        this.height = param.height || this.parent.offsetHeight;
+        this.length = param.length || Confetti.CONST.PAPER_LENGTH;
+        this.yRange = param.yRange || this.height * 2;
+        this.progress = new Progress({
+          duration: param.duration,
+          isLoop: false,
+        });
+        this.rotationRange =
+          typeof param.rotationLength === "number" ? param.rotationRange : 50;
+        this.speedRange =
+          typeof param.speedRange === "number" ? param.speedRange : 10;
+        this.sprites = [];
+
+        this.canvas.style.cssText = [
+          "display: block",
+          "position: absolute",
+          "top: 0",
+          "left: 0",
+          "pointer-events: none",
+        ].join(";");
+
+        this.render = this.render.bind(this);
+
+        this.build();
+
+        this.parent.appendChild(this.canvas);
+        this.progress.start(performance.now());
+
+        requestAnimationFrame(this.render);
+      }
+
+      static get CONST() {
+        return {
+          SPRITE_WIDTH: 9,
+          SPRITE_HEIGHT: 16,
+          PAPER_LENGTH: 10,
+          DURATION: 8000,
+          ROTATION_RATE: 50,
+          COLORS: [
+            "#EF5350",
+            "#EC407A",
+            "#AB47BC",
+            "#7E57C2",
+            "#5C6BC0",
+            "#42A5F5",
+            "#29B6F6",
+            "#26C6DA",
+            "#26A69A",
+            "#66BB6A",
+            "#9CCC65",
+            "#D4E157",
+            "#FFEE58",
+            "#FFCA28",
+            "#FFA726",
+            "#FF7043",
+            "#8D6E63",
+            "#BDBDBD",
+            "#78909C",
+          ],
+        };
+      }
+
+      build() {
+        for (let i = 0; i < this.length; ++i) {
+          // 종이 개수만큼 반복
+          let canvas = document.createElement("canvas"),
+            ctx = canvas.getContext("2d");
+          // 종이 1개당
+
+          canvas.width = Confetti.CONST.SPRITE_WIDTH;
+          canvas.height = Confetti.CONST.SPRITE_HEIGHT;
+          // 종이 1개의 길이와 넓이 지정
+
+          canvas.position = {
+            initX: Math.random() * this.width,
+            initY: -canvas.height - Math.random() * this.yRange,
+          };
+          // 초기 위치 지정
+
+          canvas.rotation =
+            this.rotationRange / 2 - Math.random() * this.rotationRange;
+          // 회전률 지정
+          canvas.speed =
+            this.speedRange / 2 + Math.random() * (this.speedRange / 2);
+          // 속도 지정
+          ctx.save();
+          ctx.fillStyle =
+            Confetti.CONST.COLORS[
+              (Math.random() * Confetti.CONST.COLORS.length) | 0
+            ];
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.restore();
+
+          this.sprites.push(canvas);
+        }
+      }
+
+      render(now) {
+        let progress = this.progress.tick(now);
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        for (let i = 0; i < this.length; ++i) {
+          this.ctx.save();
+          this.ctx.translate(
+            this.sprites[i].position.initX +
+              // 맨 처음 width
+              this.sprites[i].rotation *
+                // 회전률
+                Confetti.CONST.ROTATION_RATE *
+                // 회전 비율
+                progress,
+            // 진행도
+            this.sprites[i].position.initY +
+              // 초기 height
+              progress * (this.height + this.yRange)
+            // progress * this.height
+            // 진행도 *
+          );
+          this.ctx.rotate(this.sprites[i].rotation);
+          // 돌림
+          this.ctx.drawImage(
+            this.sprites[i],
+            // image
+            (-Confetti.CONST.SPRITE_WIDTH *
+              Math.abs(
+                Math.sin(progress * Math.PI * 2 * this.sprites[i].speed)
+              )) /
+              2,
+            // dx
+            -Confetti.CONST.SPRITE_HEIGHT / 2,
+            // dy
+            Confetti.CONST.SPRITE_WIDTH *
+              Math.abs(
+                Math.sin(progress * Math.PI * 2 * this.sprites[i].speed)
+              ),
+            //dwidth
+            Confetti.CONST.SPRITE_HEIGHT
+            // dheight
+          );
+          this.ctx.restore();
+        }
+
+        requestAnimationFrame(this.render);
+      }
+    }
+
+    (() => {
+      const DURATION = 4500,
+        LENGTH = 150;
+      setTimeout(() => {
+        new Confetti({
+          width: window.innerWidth,
+          height: window.innerHeight,
+          length: LENGTH,
+          duration: DURATION,
+        });
+      }, 1000);
+    })();
+  </script>
+</html>
